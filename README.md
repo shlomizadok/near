@@ -2,7 +2,7 @@
 
 **This is a very early release and a work in progress. untested atm**
 
-This project is a an attempt to create a full-stack solution that would help building apps with React and Graphql.
+This project is a an attempt to create a skeleton that would help building apps with React and Graphql.
 
 The server side is Express with Apollo (which is persisting the data to MongoDB)\
 The client side was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
