@@ -9,7 +9,7 @@ The client side was bootstrapped with [Create React App](https://github.com/face
 
 ### Connecting to MongoDB
 
-Graphql will try to read and write to a local instance of MongoDB. (see server/index.js#35)\
+Graphql will try to read and write to a local instance of MongoDB. (see [server/graphql/schema.js](https://github.com/shlomizadok/near/blob/master/server/graphql/schema.js#L35))\
 To quickly add MongoDB via docker:\
 `docker run -p 27017:27017 --name near-mongo -d mongo`\
 This will create a container and an exposed mongodb port which is now accessible via `localhost:27017`
