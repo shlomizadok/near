@@ -1,5 +1,6 @@
 import { AuthenticationError, UserInputError } from 'apollo-server-express';
-import { User } from '../models/User';
+import bcrypt from 'bcryptjs';
+import { Role } from '@prisma/client';
 import { generateToken } from '../middleware/auth';
 import { Context, LoginInput, SignupInput } from '../types';
 
@@ -11,26 +12,34 @@ export const resolvers = {
       }
       return req.user;
     },
-    users: async (_: any, __: any, { req }: Context) => {
-      if (!req.user || req.user.role !== 'admin') {
+    users: async (_: any, __: any, { req, prisma }: Context) => {
+      if (!req.user || req.user.role !== Role.ADMIN) {
         throw new AuthenticationError('Not authorized');
       }
-      return User.find({ isActive: true });
+      return prisma.user.findMany();
     },
   },
 
   Mutation: {
-    signup: async (_: any, { email, password, name }: SignupInput) => {
+    signup: async (_: any, { email, password, name }: SignupInput, { prisma }: Context) => {
       try {
-        const existingUser = await User.findOne({ email });
+        const existingUser = await prisma.user.findUnique({
+          where: { email },
+        });
+
         if (existingUser) {
           throw new UserInputError('Email already exists');
         }
 
-        const user = await User.create({
-          email,
-          password,
-          name,
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const user = await prisma.user.create({
+          data: {
+            email,
+            password: hashedPassword,
+            name,
+            role: Role.USER,
+          },
         });
 
         const token = generateToken(user.id);
@@ -44,14 +53,17 @@ export const resolvers = {
       }
     },
 
-    login: async (_: any, { email, password }: LoginInput) => {
+    login: async (_: any, { email, password }: LoginInput, { prisma }: Context) => {
       try {
-        const user = await User.findOne({ email, isActive: true });
+        const user = await prisma.user.findUnique({
+          where: { email },
+        });
+
         if (!user) {
           throw new UserInputError('Invalid email or password');
         }
 
-        const isValidPassword = await user.comparePassword(password);
+        const isValidPassword = await bcrypt.compare(password, user.password);
         if (!isValidPassword) {
           throw new UserInputError('Invalid email or password');
         }
@@ -67,4 +79,4 @@ export const resolvers = {
       }
     },
   },
-}; 
+};

@@ -1,30 +1,20 @@
 import { Request } from 'express';
-import { Document } from 'mongoose';
-
-export interface UserDocument extends Document {
-  name: string;
-  email: string;
-  password: string;
-  role: 'user' | 'admin';
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  comparePassword(candidatePassword: string): Promise<boolean>;
-}
+import { PrismaClient, User } from '@prisma/client';
 
 export interface AuthRequest extends Request {
-  user?: UserDocument;
+  user?: User;
   token?: string;
 }
 
 export interface Context {
   req: AuthRequest;
-  user?: UserDocument;
+  user?: User;
+  prisma: PrismaClient;
 }
 
 export interface AuthPayload {
   token: string;
-  user: UserDocument;
+  user: User;
 }
 
 export interface LoginInput {
@@ -34,4 +24,4 @@ export interface LoginInput {
 
 export interface SignupInput extends LoginInput {
   name: string;
-} 
+}

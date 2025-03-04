@@ -7,21 +7,27 @@ import compression from 'compression';
 import morgan from 'morgan';
 import path from 'path';
 
-import connectDB from './config/database';
+import connectDB, { prisma } from './config/database';
 import { typeDefs } from './graphql/schema';
 import { resolvers } from './graphql/resolvers';
 import errorHandler from './middleware/errorHandler';
 import { Context } from './types';
+import { logger } from './utils/logger';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Connect to MongoDB
+// Connect to Database
 connectDB();
 
 // Middleware
 app.use(cors());
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false,
+    crossOriginEmbedderPolicy: process.env.NODE_ENV === 'production' ? undefined : false,
+  })
+);
 app.use(compression());
 app.use(morgan('dev'));
 app.use(express.json());
@@ -37,12 +43,12 @@ async function startApolloServer(): Promise<void> {
     typeDefs,
     resolvers,
     context: ({ req }): Context => {
-      return { req };
+      return { req, prisma };
     },
-    formatError: (error) => {
+    formatError: error => {
       // Log error for monitoring
-      console.error('GraphQL Error:', error);
-      
+      logger.error('GraphQL Error:', error);
+
       // Return user-friendly error
       return {
         message: error.message,
@@ -53,7 +59,14 @@ async function startApolloServer(): Promise<void> {
   });
 
   await server.start();
-  server.applyMiddleware({ app, path: '/graphql' });
+  server.applyMiddleware({
+    app,
+    path: '/graphql',
+    cors: {
+      origin: ['http://localhost:3000'],
+      credentials: true,
+    },
+  });
 
   // Handle React routing in production
   if (process.env.NODE_ENV === 'production') {
@@ -66,9 +79,16 @@ async function startApolloServer(): Promise<void> {
   app.use(errorHandler);
 
   app.listen(PORT, () => {
-    console.log(`🚀 Server ready at http://localhost:${PORT}`);
-    console.log(`🚀 GraphQL endpoint at http://localhost:${PORT}${server.graphqlPath}`);
+    logger.info(`🚀 Server ready at http://localhost:${PORT}`);
+    logger.info(`🚀 GraphQL endpoint at http://localhost:${PORT}${server.graphqlPath}`);
   });
 }
 
-startApolloServer().catch(console.error); 
+// Handle graceful shutdown
+process.on('SIGTERM', async () => {
+  logger.info('SIGTERM signal received: closing HTTP server');
+  await prisma.$disconnect();
+  process.exit(0);
+});
+
+startApolloServer().catch(error => logger.error('Server startup error:', error));

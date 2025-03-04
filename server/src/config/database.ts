@@ -1,13 +1,17 @@
-import mongoose from 'mongoose';
+import { PrismaClient } from '@prisma/client';
+import { logger } from '../utils/logger';
+
+const prisma = new PrismaClient();
 
 const connectDB = async (): Promise<void> => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/near-framework');
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    await prisma.$connect();
+    logger.info('Database Connected Successfully');
   } catch (error) {
-    console.error(`Error: ${(error as Error).message}`);
+    logger.error(`Error connecting to database: ${(error as Error).message}`);
     process.exit(1);
   }
 };
 
-export default connectDB; 
+export { prisma };
+export default connectDB;

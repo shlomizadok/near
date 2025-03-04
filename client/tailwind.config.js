@@ -1,6 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ['./src/**/*.{js,jsx,ts,tsx}'],
+  content: ['./src/**/*.{js,jsx,ts,tsx}', './public/index.html'],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
@@ -32,7 +33,7 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans: ['Inter var', 'sans-serif'],
+        sans: ['Inter var', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
         lg: '0.5rem',

@@ -1,29 +1,53 @@
 import { Request, Response, NextFunction } from 'express';
-import { MongoError } from 'mongodb';
-import { Error as MongooseError } from 'mongoose';
+import { Prisma } from '@prisma/client';
+import { logger } from '../utils/logger';
 
 interface ExtendedError extends Error {
   status?: number;
-  code?: number;
-  keyPattern?: Record<string, any>;
+  code?: string | number;
 }
 
 const errorHandler = (
   err: ExtendedError,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction // Prefix with underscore to indicate it's intentionally unused
 ): void => {
-  console.error(err.stack);
+  logger.error(err.stack || err.message);
 
-  if (err instanceof MongooseError.ValidationError) {
+  // Handle Prisma errors
+  if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    switch (err.code) {
+      case 'P2002': // Unique constraint violation
+        res.status(400).json({
+          message: 'Duplicate entry error',
+          fields: err.meta?.target,
+        });
+        return;
+      case 'P2025': // Record not found
+        res.status(404).json({
+          message: 'Record not found',
+        });
+        return;
+      default:
+        res.status(400).json({
+          message: 'Database error',
+          code: err.code,
+        });
+        return;
+    }
+  }
+
+  // Handle validation errors
+  if (err instanceof Prisma.PrismaClientValidationError) {
     res.status(400).json({
       message: 'Validation Error',
-      errors: Object.values(err.errors).map(error => error.message),
+      details: err.message,
     });
     return;
   }
 
+  // Handle JWT errors
   if (err.name === 'JsonWebTokenError') {
     res.status(401).json({
       message: 'Invalid token',
@@ -31,10 +55,9 @@ const errorHandler = (
     return;
   }
 
-  if (err instanceof MongoError && err.code === 11000) {
-    res.status(400).json({
-      message: 'Duplicate key error',
-      field: Object.keys(err.keyPattern || {}).join(', '),
+  if (err.name === 'TokenExpiredError') {
+    res.status(401).json({
+      message: 'Token expired',
     });
     return;
   }
@@ -46,4 +69,4 @@ const errorHandler = (
   });
 };
 
-export default errorHandler; 
+export default errorHandler;
