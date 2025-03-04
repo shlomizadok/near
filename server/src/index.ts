@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import express from 'express';
+import express, { Response, NextFunction } from 'express';
 import { ApolloServer } from 'apollo-server-express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -11,6 +11,7 @@ import connectDB, { prisma } from './config/database';
 import { typeDefs } from './graphql/schema';
 import { resolvers } from './graphql/resolvers';
 import errorHandler from './middleware/errorHandler';
+import { auth } from './middleware/auth';
 import { Context } from './types';
 import { logger } from './utils/logger';
 
@@ -42,8 +43,16 @@ async function startApolloServer(): Promise<void> {
   const server = new ApolloServer({
     typeDefs,
     resolvers,
-    context: ({ req }): Context => {
-      return { req, prisma };
+    context: async ({ req }): Promise<Context> => {
+      try {
+        const res = {} as Response;
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        const next = (() => {}) as NextFunction;
+        await auth(req, res, next);
+        return { req, prisma };
+      } catch (error) {
+        return { req, prisma };
+      }
     },
     formatError: error => {
       // Log error for monitoring

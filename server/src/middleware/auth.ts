@@ -2,10 +2,12 @@ import { Response, NextFunction } from 'express';
 import jwt, { SignOptions } from 'jsonwebtoken';
 import { prisma } from '../config/database';
 import { AuthRequest } from '../types';
+import { logger } from '../utils/logger';
 
 export const auth = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+    const authHeader = req.header('Authorization');
+    const token = authHeader?.replace('Bearer ', '');
 
     if (!token) {
       throw new Error('Authentication required');
@@ -26,7 +28,7 @@ export const auth = async (req: AuthRequest, res: Response, next: NextFunction):
     req.token = token;
     next();
   } catch (error) {
-    console.error('Auth middleware error:', error);
+    logger.error('Auth middleware error:', error);
     next(error);
   }
 };
@@ -35,5 +37,6 @@ export const generateToken = (userId: string): string => {
   const options: SignOptions = {
     expiresIn: process.env.JWT_EXPIRES_IN ? parseInt(process.env.JWT_EXPIRES_IN) : '24h',
   };
+
   return jwt.sign({ userId }, process.env.JWT_SECRET || 'your-secret-key', options);
 };
