@@ -1,33 +1,34 @@
 // This is just a placeholder... 
 // A better structure would be
 // graphql/typeDef.js, graphql/resolvers.js, etc.
-const gql = require('graphql-tag');
+const { gql } = require('apollo-server-express');
 const { buildASTSchema } = require('graphql');
 const { makeExecutableSchema } = require('graphql-tools');
 const { MongoClient, ObjectId } = require('mongodb');
 
-const typeDefs = buildASTSchema(gql`
-  type Query {
-    posts: [Post]
-    post(_id: ID!): Post
+const typeDefs = gql`
+  type User {
+    id: ID!
+    email: String!
+    name: String
+    createdAt: String!
   }
 
-  type Post {
-    _id: ID
-    author: String
-    body: String
+  type AuthPayload {
+    token: String!
+    user: User!
+  }
+
+  type Query {
+    me: User
+    users: [User!]!
   }
 
   type Mutation {
-    submitPost(input: PostInput!): Post
+    signup(email: String!, password: String!, name: String): AuthPayload!
+    login(email: String!, password: String!): AuthPayload!
   }
-  
-  input PostInput {
-    _id: ID
-    author: String!
-    body: String!
-  }  
-`);
+`;
 
 const context = async() => {
   let db;

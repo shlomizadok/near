@@ -1,16 +1,17 @@
-require('dotenv').config();
-const express = require('express');
-const { ApolloServer } = require('apollo-server-express');
-const cors = require('cors');
-const helmet = require('helmet');
-const compression = require('compression');
-const morgan = require('morgan');
-const path = require('path');
+import 'dotenv/config';
+import express from 'express';
+import { ApolloServer } from 'apollo-server-express';
+import cors from 'cors';
+import helmet from 'helmet';
+import compression from 'compression';
+import morgan from 'morgan';
+import path from 'path';
 
-const connectDB = require('./config/database');
-const { typeDefs } = require('./graphql/schema');
-const { resolvers } = require('./graphql/resolvers');
-const errorHandler = require('./middleware/errorHandler');
+import connectDB from './config/database';
+import { typeDefs } from './graphql/schema';
+import { resolvers } from './graphql/resolvers';
+import errorHandler from './middleware/errorHandler';
+import { Context } from './types';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -28,15 +29,14 @@ app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from the React app in production
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client/build')));
+  app.use(express.static(path.join(__dirname, '../../client/build')));
 }
 
-async function startApolloServer() {
+async function startApolloServer(): Promise<void> {
   const server = new ApolloServer({
     typeDefs,
     resolvers,
-    context: ({ req }) => {
-      // Add authentication and context here
+    context: ({ req }): Context => {
       return { req };
     },
     formatError: (error) => {
@@ -58,7 +58,7 @@ async function startApolloServer() {
   // Handle React routing in production
   if (process.env.NODE_ENV === 'production') {
     app.get('*', (req, res) => {
-      res.sendFile(path.join(__dirname, '../client/build/index.html'));
+      res.sendFile(path.join(__dirname, '../../client/build/index.html'));
     });
   }
 
@@ -71,4 +71,4 @@ async function startApolloServer() {
   });
 }
 
-startApolloServer().catch(console.error);
+startApolloServer().catch(console.error); 
