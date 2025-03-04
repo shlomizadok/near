@@ -1,24 +1,19 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ApolloProvider } from '@apollo/client';
-import { ThemeProvider, CssBaseline } from '@mui/material';
 import { client } from './apollo';
-import theme from './theme';
-
-// Import pages
+import Layout from './components/Layout';
+import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
-import Layout from './components/Layout';
-import ProtectedRoute from './components/ProtectedRoute';
 
 const App: React.FC = () => {
   return (
     <ApolloProvider client={client}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Router>
+      <Router>
+        <div className="min-h-screen bg-gray-50">
           <Layout>
             <Routes>
               <Route path="/" element={<Home />} />
@@ -34,10 +29,10 @@ const App: React.FC = () => {
               />
             </Routes>
           </Layout>
-        </Router>
-      </ThemeProvider>
+        </div>
+      </Router>
     </ApolloProvider>
   );
 };
 
-export default App; 
+export default App;

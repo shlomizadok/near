@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: near_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'yarn'
+
+    - name: Install dependencies (Root)
+      run: yarn install
+
+    - name: Install dependencies (Client)
+      working-directory: ./client
+      run: yarn install
+
+    - name: Install dependencies (Server)
+      working-directory: ./server
+      run: yarn install
+
+    - name: Type check (Client)
+      working-directory: ./client
+      run: yarn type-check
+
+    - name: Type check (Server)
+      working-directory: ./server
+      run: yarn type-check
+
+    - name: Lint (Client)
+      working-directory: ./client
+      run: yarn lint
+
+    - name: Lint (Server)
+      working-directory: ./server
+      run: yarn lint
+
+    - name: Test (Client)
+      working-directory: ./client
+      run: yarn test --ci --coverage
+
+    - name: Test (Server)
+      working-directory: ./server
+      run: yarn test --ci --coverage
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/near_test
+        REDIS_URL: redis://localhost:6379
+        JWT_SECRET: test-secret
+        NODE_ENV: test
+
+    - name: Build (Client)
+      working-directory: ./client
+      run: yarn build
+
+    - name: Build (Server)
+      working-directory: ./server
+      run: yarn build 

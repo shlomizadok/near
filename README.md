@@ -1,44 +1,198 @@
-# Welcome to NEAR (Node, Express, Apollo, React)
+# NEAR Framework
 
-**This is a very early release and a work in progress. untested atm**
+A modern full-stack TypeScript framework built with React, Node.js, GraphQL, and PostgreSQL.
 
-This project is a an attempt to create a skeleton that would help building apps with React and Graphql.
+## 🚀 Quick Start
 
-The server side is Express with Apollo (which is persisting the data to MongoDB)\
-The client side was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/near.git
+cd near
 
-### Connecting to MongoDB
+# Install dependencies
+yarn install
 
-Graphql will try to read and write to a local instance of MongoDB. (see [server/graphql/schema.js](https://github.com/shlomizadok/near/blob/master/server/graphql/schema.js#L35))\
-To quickly add MongoDB via docker:\
-`docker run -p 27017:27017 --name near-mongo -d mongo`\
-This will create a container and an exposed mongodb port which is now accessible via `localhost:27017`
+# Set up environment variables
+cp client/.env.example client/.env
+cp server/.env.example server/.env
 
-## Available Scripts
+# Start development environment
+docker-compose up
+```
 
-In the project directory, you can run:
+## 🏗 Tech Stack
 
-### `yarn start`
+### Frontend
 
-Runs the client and the server in the development mode.\
-The client will open [http://localhost:3000](http://localhost:3000) to view it in your browser.\
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- React with TypeScript
+- Apollo Client for GraphQL
+- Tailwind CSS for styling
+- React Router for navigation
+- Jest & React Testing Library
 
-The server (graphql) will open in [http://localhost:4000/graphql](http://localhost:4000/graphql).\
-The server loads in watch mode with nodemon - this is to help debugging & hot reloading.
+### Backend
 
-### `yarn start:web`
+- Node.js with TypeScript
+- Express
+- Apollo Server
+- Prisma ORM
+- PostgreSQL
+- Redis for caching
+- Jest for testing
 
-Will launch only the client in development mode.
+## 📁 Project Structure
 
-### `yarn start:server`
+```
+near/
+├── client/                 # Frontend React application
+│   ├── src/
+│   │   ├── components/    # Reusable components
+│   │   ├── pages/        # Page components
+│   │   ├── graphql/      # GraphQL queries and mutations
+│   │   └── types/        # TypeScript type definitions
+│   └── ...
+├── server/                # Backend Node.js application
+│   ├── src/
+│   │   ├── resolvers/    # GraphQL resolvers
+│   │   ├── schemas/      # GraphQL type definitions
+│   │   ├── services/     # Business logic
+│   │   └── utils/        # Utility functions
+│   └── ...
+└── ...
+```
 
-Will launch only the graphql server
+## 🛠 Development
 
-### `yarn watch:server`
+### Prerequisites
 
-Will launch only the graphql server with nodemon. Extremely useful when trying to debug and hot reload.
+- Node.js 18+
+- Docker & Docker Compose
+- Yarn
 
+### Available Scripts
 
+#### Root Directory
 
+```bash
+yarn start          # Start both client and server
+yarn test          # Run all tests
+yarn lint          # Lint all files
+yarn build         # Build both client and server
+```
+
+#### Client
+
+```bash
+yarn dev           # Start development server
+yarn build         # Build for production
+yarn test          # Run tests
+yarn lint          # Lint code
+```
+
+#### Server
+
+```bash
+yarn dev           # Start development server
+yarn build         # Build for production
+yarn test          # Run tests
+yarn lint          # Lint code
+yarn db:migrate    # Run database migrations
+yarn db:seed       # Seed database
+yarn db:studio     # Open Prisma Studio
+```
+
+### Development Workflow
+
+1. Create a new branch for your feature:
+
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+2. Make your changes and commit using conventional commits:
+
+   ```bash
+   git commit -m "feat: add new feature"
+   git commit -m "fix: resolve bug issue"
+   ```
+
+3. Push your changes and create a pull request:
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+
+### Environment Variables
+
+#### Client (.env)
+
+- `REACT_APP_API_URL`: Backend API URL
+- `REACT_APP_GRAPHQL_URL`: GraphQL endpoint
+- `REACT_APP_WS_URL`: WebSocket URL for subscriptions
+
+#### Server (.env)
+
+- `DATABASE_URL`: PostgreSQL connection string
+- `REDIS_URL`: Redis connection string
+- `JWT_SECRET`: Secret for JWT tokens
+- `PORT`: Server port number
+
+## 🧪 Testing
+
+We use Jest for both frontend and backend testing:
+
+```bash
+# Run all tests
+yarn test
+
+# Run tests in watch mode
+yarn test:watch
+
+# Run tests with coverage
+yarn test:coverage
+```
+
+## 📦 Deployment
+
+The project includes GitHub Actions workflows for CI/CD:
+
+- `ci.yml`: Runs on every pull request
+
+  - Linting
+  - Type checking
+  - Unit tests
+  - Build verification
+
+- `cd.yml`: Runs on main branch
+  - Builds Docker images
+  - Pushes to ECR
+  - Deploys to ECS
+
+## 🔍 Code Quality
+
+We maintain code quality through:
+
+- ESLint for code linting
+- Prettier for code formatting
+- TypeScript for type safety
+- Husky for pre-commit hooks
+- Jest for testing
+- GitHub Actions for CI/CD
+
+## 📚 Additional Documentation
+
+- [Frontend Documentation](./client/README.md)
+- [Backend Documentation](./server/README.md)
+- [API Documentation](./server/docs/API.md)
+- [Contributing Guidelines](./CONTRIBUTING.md)
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

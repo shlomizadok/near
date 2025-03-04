@@ -1,137 +1,93 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useMutation } from '@apollo/client';
-import { gql } from '@apollo/client';
-import {
-  Box,
-  Paper,
-  TextField,
-  Button,
-  Typography,
-  Alert,
-} from '@mui/material';
-import { SignupInput, AuthPayload } from '../types';
-
-const SIGNUP_MUTATION = gql`
-  mutation Signup($email: String!, $password: String!, $name: String!) {
-    signup(email: $email, password: $password, name: $name) {
-      token
-      user {
-        id
-        name
-        email
-        role
-      }
-    }
-  }
-`;
+import { SIGNUP_USER } from '../graphql/mutations';
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState<SignupInput>({
-    name: '',
-    email: '',
-    password: '',
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const [signup] = useMutation(SIGNUP_USER, {
+    onCompleted: data => {
+      localStorage.setItem('token', data.signup.token);
+      navigate('/dashboard');
+    },
+    onError: error => {
+      setError(error.message);
+    },
   });
-  const [error, setError] = useState<string>('');
 
-  const [signup, { loading }] = useMutation<{ signup: AuthPayload }, { input: SignupInput }>(
-    SIGNUP_MUTATION,
-    {
-      onCompleted: (data) => {
-        localStorage.setItem('token', data.signup.token);
-        navigate('/dashboard');
-      },
-      onError: (error) => {
-        setError(error.message);
-      },
-    }
-  );
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      await signup({
-        variables: {
-          input: formData,
-        },
-      });
-    } catch (err) {
-      // Error is handled in onError callback
-    }
+    signup({ variables: { name, email, password } });
   };
 
   return (
-    <Box
-      sx={{
-        mt: 8,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-      }}
-    >
-      <Paper sx={{ p: 4, maxWidth: 400, width: '100%' }}>
-        <Typography variant="h4" component="h1" gutterBottom align="center">
-          Sign Up
-        </Typography>
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-        <form onSubmit={handleSubmit}>
-          <TextField
-            fullWidth
-            label="Name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            margin="normal"
-            required
-          />
-          <TextField
-            fullWidth
-            label="Email"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-            margin="normal"
-            required
-          />
-          <TextField
-            fullWidth
-            label="Password"
-            name="password"
-            type="password"
-            value={formData.password}
-            onChange={handleChange}
-            margin="normal"
-            required
-          />
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{ mt: 3, mb: 2 }}
-            disabled={loading}
-          >
-            {loading ? 'Creating account...' : 'Sign Up'}
-          </Button>
-          <Button
-            fullWidth
-            variant="text"
-            onClick={() => navigate('/login')}
-          >
-            Already have an account? Sign In
-          </Button>
-        </form>
-      </Paper>
-    </Box>
+    <div className="mt-8 container mx-auto px-4">
+      <div className="flex justify-center">
+        <div className="w-full max-w-md">
+          <div className="bg-white rounded-xl shadow-md p-8">
+            <h2 className="text-3xl font-bold text-center mb-8">Create Account</h2>
+            {error && <div className="mb-4 p-4 text-red-700 bg-red-100 rounded-lg">{error}</div>}
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                  Full Name
+                </label>
+                <input
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  className="input-field mt-1"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                  Email Address
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  className="input-field mt-1"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  className="input-field mt-1"
+                  required
+                />
+              </div>
+              <div>
+                <button type="submit" className="w-full btn-primary">
+                  Sign Up
+                </button>
+              </div>
+            </form>
+            <div className="mt-6 text-center">
+              <Link to="/login" className="text-primary-600 hover:text-primary-700">
+                Already have an account? Sign in
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
-export default Signup; 
+export default Signup;
